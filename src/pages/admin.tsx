@@ -768,7 +768,7 @@ function AppearanceTab({ pw, settings, onSaved }: { pw: string; settings: Settin
             </div>
             <div>
               <div className="font-semibold text-sm">{form.name || "Add-in Name"}</div>
-              <div className="text-[10px] text-muted-foreground">Excel Add-in</div>
+              <div className="text-[10px] text-muted-foreground">XLSX App</div>
             </div>
           </div>
           <p className="text-xs text-muted-foreground">{form.tagline || "Your tagline here"}</p>

@@ -309,7 +309,7 @@ export function buildReportHtml(summary: Summary, appName: string, currencySymbo
 
   <!-- Footer -->
   <div style="border-top:1px solid #e2e8f0;padding-top:10px;margin-top:8px;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8">
-    <span>${appName} · Excel Add-in</span>
+    <span>${appName} · XLSX App</span>
     <span class="no-print" style="color:#4f46e5;font-weight:600;cursor:pointer" onclick="window.print()">🖨 Print / Save as PDF</span>
   </div>
 

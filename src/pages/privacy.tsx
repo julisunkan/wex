@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <p className="text-xs text-muted-foreground">Last updated: June 2026</p>
 
         <p>
-          This Privacy Policy describes how <strong>Bank Statement Analyzer</strong> ("the Add-in", "we", "us") collects, uses, and handles your information when you use our Microsoft Excel Add-in service.
+          This Privacy Policy describes how <strong>Bank Statement Analyzer</strong> ("the App", "we", "us") collects, uses, and handles your information when you use our XLSX App service.
         </p>
 
         <section className="space-y-1.5">

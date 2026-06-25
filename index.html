@@ -3,12 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Bank Statement Analyzer</title>
+    <title>Bank Statement Analyzer – XLSX App</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BSA XLSX" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+
+    <!-- SEO / Open Graph -->
+    <meta name="description" content="Analyze bank statements, auto-categorize spending, and get instant financial insights. Upload CSV, XLSX, or PDF — no account required." />
+    <meta name="keywords" content="bank statement analyzer, xlsx app, transaction categorizer, spending tracker, budget analyzer, financial health score, CSV import, expense tracker" />
+    <meta property="og:title" content="Bank Statement Analyzer – XLSX App" />
+    <meta property="og:description" content="Upload CSV, XLSX, or PDF bank statements and get instant spending breakdowns, charts, and a financial health score." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icon-512.png" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Office.js for Excel Add-in context -->
     <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+
+    <!-- PWA service worker registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

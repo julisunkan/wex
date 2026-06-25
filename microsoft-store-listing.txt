@@ -1,0 +1,180 @@
+=========================================================
+MICROSOFT STORE LISTING — Bank Statement Analyzer (XLSX App)
+=========================================================
+
+PRODUCT NAME
+------------
+Bank Statement Analyzer – XLSX App
+
+SHORT DESCRIPTION (≤ 100 characters)
+--------------------------------------
+Analyze bank statements, auto-categorize spending & get instant financial insights.
+
+LONG DESCRIPTION (≤ 10,000 characters)
+----------------------------------------
+Take full control of your finances with Bank Statement Analyzer — the intelligent XLSX App that transforms raw bank data into clear, actionable insights in seconds.
+
+Whether you're a freelancer tracking business expenses, a family managing a household budget, or a financial professional preparing client reports, Bank Statement Analyzer does the heavy lifting for you.
+
+──────────────────────────────────────
+HOW IT WORKS
+──────────────────────────────────────
+1. Upload your bank statement — supports CSV, XLSX, and PDF formats from virtually any bank or financial institution.
+2. The app automatically maps columns, parses transactions, and groups them into 14 standard spending categories (Groceries, Utilities, Transport, Entertainment, Healthcare, Dining, Shopping, Travel, Transfers, Subscriptions, Rent/Mortgage, Insurance, Savings, and Other).
+3. Review interactive charts, a financial health score, top merchant breakdowns, and monthly trend analysis — all on one screen.
+4. Export a professional PDF report or share a summary via email, ready to hand off to an accountant or advisor.
+
+──────────────────────────────────────
+KEY FEATURES
+──────────────────────────────────────
+★ Multi-format Import
+   Upload CSV, XLSX (.xlsx / .xls), or PDF bank statements. Paste raw CSV text directly if you prefer — no file needed.
+
+★ Smart Auto-Categorization
+   14-category intelligent transaction classifier automatically sorts your spending. Manually override any category with a single tap.
+
+★ Financial Health Score
+   Receive a personalized 0–100 score based on your income-to-expense ratio, savings rate, spending diversity, and transaction volatility.
+
+★ Rich Visualizations
+   • Monthly income vs. expenses bar chart
+   • Category-level donut chart with percentage breakdowns
+   • Top 5 merchants ranked by spend
+   • Day-of-week spending heatmap
+   • Running balance trend line
+
+★ Advanced Search & Filter
+   Search transactions by merchant, amount, date range, or category. Filter results instantly with no page reload.
+
+★ Professional PDF Reports
+   One-tap PDF export with your logo, a full transaction table, category summary, and key KPIs — perfect for accountants, auditors, or personal records.
+
+★ Email Delivery
+   Send a polished HTML financial report directly to any email address from within the app.
+
+★ Multi-Currency Support
+   Switch between 10+ currencies (USD, EUR, GBP, NGN, KES, GHS, ZAR, INR, CAD, AUD). All amounts display in your chosen currency symbol.
+
+★ Pro Subscription (USDT Crypto Payments)
+   Unlock unlimited statement uploads, advanced charts, email delivery, and PDF export with a Pro license. Pay securely via USDT on Tron, Binance Smart Chain, or Ethereum — no bank card required.
+
+★ Privacy-First Design
+   All processing happens locally in your browser. No transaction data is ever stored on our servers. Your financial information stays completely private.
+
+★ Works Offline (PWA)
+   Install as a Progressive Web App on Windows, Android, iOS, or any modern browser. Use core features without an internet connection once installed.
+
+★ Accessible & Responsive
+   Fully responsive layout adapts to desktop, tablet, and mobile screens. Keyboard accessible and screen-reader friendly.
+
+──────────────────────────────────────
+SUPPORTED FILE FORMATS
+──────────────────────────────────────
+• CSV (comma-separated values) — any bank export
+• XLSX / XLS — Microsoft Excel workbooks
+• PDF — bank statement PDFs (text-based)
+• Plain text paste — raw CSV pasted directly
+
+──────────────────────────────────────
+WHO IS THIS APP FOR?
+──────────────────────────────────────
+• Individuals wanting a clear monthly budget breakdown
+• Freelancers & self-employed tracking business expenses
+• Small business owners reviewing cash flow
+• Accountants processing client statements
+• Financial advisors preparing client reviews
+• Anyone who wants to understand where their money goes
+
+──────────────────────────────────────
+PRIVACY & SECURITY
+──────────────────────────────────────
+Bank Statement Analyzer processes all data client-side in your browser. Your transactions are never uploaded to or stored on our servers. The only data transmitted is your license key verification (for Pro features) and optionally your email address if you choose to receive a report. Full details at: https://bankanalyzer.app/privacy
+
+──────────────────────────────────────
+SUBSCRIPTION PLANS
+──────────────────────────────────────
+Free Tier:
+  • Analyze up to 3 statements per month
+  • Basic category chart
+  • Transaction search & filter
+
+Pro – $5 one-time or $3/month:
+  • Unlimited statement uploads
+  • All 14 category charts + merchant breakdown
+  • Financial health score
+  • PDF export
+  • Email report delivery
+  • Priority support
+
+──────────────────────────────────────
+TECHNICAL REQUIREMENTS
+──────────────────────────────────────
+• Works in any modern browser: Edge, Chrome, Firefox, Safari
+• No installation required — runs as a web app
+• Install as PWA for offline access and home-screen shortcut
+• Minimum recommended screen: 360px wide
+• Internet required for Pro license verification and email delivery only
+
+──────────────────────────────────────
+SUPPORT
+──────────────────────────────────────
+Website: https://bankanalyzer.app
+Support: https://bankanalyzer.app/support
+Privacy Policy: https://bankanalyzer.app/privacy
+EULA: https://bankanalyzer.app/eula
+
+Version: 2.0.0
+Last Updated: June 2026
+Category: Finance / Productivity
+
+
+=========================================================
+KEYWORDS / SEARCH TAGS
+=========================================================
+(Use these in the store listing tags field — separate by comma)
+
+bank statement analyzer, xlsx app, bank statement reader, transaction categorizer, spending tracker, budget analyzer, financial health score, CSV bank import, XLSX finance tool, PDF statement parser, expense tracker, income expense chart, money manager, financial report generator, personal finance, cash flow analyzer, accounting tool, freelancer finance, small business expense tracker, bank CSV analyzer, auto categorize transactions, financial insights, monthly budget breakdown, Excel bank statement, bank statement to PDF, crypto payment finance app, USDT payment app, offline finance app, PWA finance, progressive web app finance, multi-currency budget, spending categories, top merchants spending, financial dashboard, bank data visualization, recharts finance, no server finance app, privacy-first finance, client-side finance tool, bank report generator, email financial report, Microsoft Edge finance app, Windows finance app, XLSX reader, bank statement XLSX
+
+
+=========================================================
+STORE METADATA
+=========================================================
+
+Category (Primary):    Finance
+Category (Secondary):  Productivity Tools
+
+Age Rating:            Everyone (PEGI 3 / ESRB E)
+Price:                 Free (with in-app Pro upgrade)
+Publisher:             Bank Analyzer Pro
+Copyright:             © 2026 Bank Analyzer Pro. All rights reserved.
+
+Supported Platforms:
+  ✓ Windows 10 / 11 (PWA via Microsoft Edge)
+  ✓ Android (PWA)
+  ✓ iOS / iPadOS (PWA via Safari)
+  ✓ macOS (PWA via Chrome / Edge)
+
+Supported Languages:   English
+
+Privacy Policy URL:    https://bankanalyzer.app/privacy
+Support URL:           https://bankanalyzer.app/support
+Website URL:           https://bankanalyzer.app
+
+
+=========================================================
+WHAT'S NEW (Version 2.0.0 — June 2026)
+=========================================================
+• Complete UI redesign with vibrant blue gradient theme
+• Maskable PWA icons for all platforms
+• Financial health score with detailed breakdown
+• Multi-currency display (10+ currencies)
+• Improved PDF export with logo and KPI summary
+• Admin dashboard for license and revenue management
+• USDT crypto payment support (Tron, BSC, Ethereum)
+• Email report delivery via SMTP
+• Performance improvements and bug fixes
+
+
+=========================================================
+END OF LISTING
+=========================================================

@@ -521,7 +521,7 @@ export default function App() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-lg leading-tight text-foreground truncate">{appName}</div>
-          <div className="text-sm text-muted-foreground font-medium">Excel Add-in</div>
+          <div className="text-sm text-muted-foreground font-medium">XLSX App</div>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
           {/* Currency picker */}
@@ -1557,7 +1557,7 @@ export default function App() {
             <span>·</span>
             <a href="/support" className="hover:text-foreground transition-colors">Support</a>
           </div>
-          <p className="text-center text-xs text-muted-foreground/60 mt-1">{appName} · Excel Add-in</p>
+          <p className="text-center text-xs text-muted-foreground/60 mt-1">{appName} · XLSX App</p>
         </div>
       )}
     </div>
