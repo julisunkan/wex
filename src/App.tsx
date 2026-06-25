@@ -933,48 +933,72 @@ export default function App() {
 
         {/* ── RESULTS ── */}
         {step === "results" && summary && (
-          <div className="flex flex-col h-full animate-fade-in">
+          <div className="flex flex-col animate-fade-in">
 
-            {/* Action buttons row */}
-            <div className="flex gap-2 px-4 pt-4 pb-3 shrink-0 flex-wrap bg-white border-b border-border shadow-sm">
-              <ActionBtn variant="secondary" onClick={handleHighlight} disabled={highlighting || clearing} size="sm">
-                {highlighting ? <Spinner size="sm" />
-                  : highlightDone ? <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                  : <img src={iconHighlight} alt="Highlight" className="w-4 h-4 object-contain" />}
-                {highlightDone ? "Done!" : "Highlight"}
-                {!isPro && <span className="text-xs opacity-60">🔒</span>}
-              </ActionBtn>
-              <ActionBtn variant="ghost" onClick={doClearHighlights} disabled={clearing || highlighting} size="sm">
-                {clearing ? <Spinner size="sm" />
-                  : clearDone ? <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                  : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>}
-                {clearDone ? "Cleared!" : "Clear"}
-              </ActionBtn>
-              <ActionBtn onClick={handleExport} disabled={exporting} size="sm">
-                {exporting ? <Spinner size="sm" color="border-white" />
-                  : exportDone ? <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                  : <img src={iconExport} alt="Export" className="w-4 h-4 object-contain" />}
-                {exportDone ? "Exported!" : "Export"}
-                {!isPro && <span className="text-xs opacity-60">🔒</span>}
-              </ActionBtn>
-              <ActionBtn variant="secondary" onClick={handleExportCsv} size="sm">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                CSV {!isPro && <span className="text-xs opacity-60">🔒</span>}
-              </ActionBtn>
-              <ActionBtn variant="secondary" onClick={handleExportPdf} size="sm">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/>
-                </svg>
-                PDF {!isPro && <span className="text-xs opacity-60">🔒</span>}
-              </ActionBtn>
-            </div>
+            {/* ── Sticky toolbar: action buttons + tabs ── */}
+            <div className="sticky top-0 z-20 bg-white shadow-sm">
+
+              {/* Action buttons */}
+              <div className="flex gap-2 px-4 pt-3 pb-3 flex-wrap border-b border-border">
+                <ActionBtn variant="secondary" onClick={handleHighlight} disabled={highlighting || clearing} size="sm">
+                  {highlighting ? <Spinner size="sm" />
+                    : highlightDone ? <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                    : <img src={iconHighlight} alt="Highlight" className="w-4 h-4 object-contain" />}
+                  {highlightDone ? "Done!" : "Highlight"}
+                  {!isPro && <span className="text-xs opacity-60">🔒</span>}
+                </ActionBtn>
+                <ActionBtn variant="ghost" onClick={doClearHighlights} disabled={clearing || highlighting} size="sm">
+                  {clearing ? <Spinner size="sm" />
+                    : clearDone ? <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                    : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>}
+                  {clearDone ? "Cleared!" : "Clear"}
+                </ActionBtn>
+                <ActionBtn onClick={handleExport} disabled={exporting} size="sm">
+                  {exporting ? <Spinner size="sm" color="border-white" />
+                    : exportDone ? <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                    : <img src={iconExport} alt="Export" className="w-4 h-4 object-contain" />}
+                  {exportDone ? "Exported!" : "Export"}
+                  {!isPro && <span className="text-xs opacity-60">🔒</span>}
+                </ActionBtn>
+                <ActionBtn variant="secondary" onClick={handleExportCsv} size="sm">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  CSV {!isPro && <span className="text-xs opacity-60">🔒</span>}
+                </ActionBtn>
+                <ActionBtn variant="secondary" onClick={handleExportPdf} size="sm">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/>
+                  </svg>
+                  PDF {!isPro && <span className="text-xs opacity-60">🔒</span>}
+                </ActionBtn>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-border px-2">
+                {(["overview", "categories", "transactions", "budget"] as const).map((tab) => {
+                  const isProTab = tab === "budget";
+                  const icons: Record<string, string> = { overview: "📊", categories: "🏷️", transactions: "📋", budget: "💰" };
+                  return (
+                    <button key={tab} onClick={() => { if (tab === "budget") handleBudgetTab(); else setActiveTab(tab); }}
+                      className={`flex-1 py-3 text-sm font-bold capitalize transition-all flex items-center justify-center gap-1.5 border-b-2 ${
+                        activeTab === tab
+                          ? "border-primary text-primary"
+                          : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                      }`}>
+                      <span className="hidden sm:inline">{icons[tab]}</span>
+                    {tab}
+                    {isProTab && !isPro && <span className="text-xs">🔒</span>}
+                  </button>
+                );
+              })}
+              </div>
+            </div>{/* end sticky toolbar */}
 
             {/* Action error banner */}
             {actionError && (
-              <div className="mx-4 mt-3 flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3.5 shrink-0 animate-fade-in">
+              <div className="mx-4 mt-3 flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3.5 animate-fade-in">
                 <svg className="w-5 h-5 text-destructive shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
@@ -990,7 +1014,7 @@ export default function App() {
             {/* Upsell banner */}
             {!isPro && (
               <button onClick={() => setShowPayment(true)}
-                className="mx-4 mt-3 flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-5 py-3.5 hover:border-amber-400 transition-all group shrink-0 hover:scale-[1.005]">
+                className="mx-4 mt-3 flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-5 py-3.5 hover:border-amber-400 transition-all group hover:scale-[1.005]">
                 <div className="text-left">
                   <p className="text-sm font-bold text-amber-800">🚀 Unlock Pro — from ${lowestPlanPrice} USDT</p>
                   <p className="text-xs text-amber-600 mt-0.5">Budgets · CSV export · Recurring · Duplicates · PDF</p>
@@ -1001,28 +1025,8 @@ export default function App() {
               </button>
             )}
 
-            {/* Tabs */}
-            <div className="flex border-b border-border shrink-0 px-2 mt-3 bg-white">
-              {(["overview", "categories", "transactions", "budget"] as const).map((tab) => {
-                const isProTab = tab === "budget";
-                const icons: Record<string, string> = { overview: "📊", categories: "🏷️", transactions: "📋", budget: "💰" };
-                return (
-                  <button key={tab} onClick={() => { if (tab === "budget") handleBudgetTab(); else setActiveTab(tab); }}
-                    className={`flex-1 py-3 text-sm font-bold capitalize transition-all flex items-center justify-center gap-1.5 border-b-2 ${
-                      activeTab === tab
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-                    }`}>
-                    <span className="hidden sm:inline">{icons[tab]}</span>
-                    {tab}
-                    {isProTab && !isPro && <span className="text-xs">🔒</span>}
-                  </button>
-                );
-              })}
-            </div>
-
             {/* Tab content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="p-4 space-y-4">
 
               {/* ── OVERVIEW TAB ── */}
               {activeTab === "overview" && (
