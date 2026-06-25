@@ -3,7 +3,7 @@ services:
   - type: web
     name: bank-analyzer-api
     runtime: node
-    buildCommand: npm install && npm install --prefix server
+    buildCommand: npm install
     startCommand: node server/index.js
     envVars:
       - key: USDT_WALLET_ADDRESS
