@@ -12,6 +12,7 @@ import {
 import { useCurrency, CURRENCIES } from "./hooks/use-currency";
 import { buildSummary, CATEGORIES, type Category, type Summary, type Transaction } from "./lib/categorizer";
 import { parsePastedText, writeToExcelSheet } from "./lib/csv-parser";
+import { parseFileToTransactions, ACCEPTED_MIME_TYPES, SUPPORTED_EXTENSIONS } from "./lib/file-parser";
 import { exportToPdf, buildReportHtml } from "./lib/pdf";
 import { getLicense, checkLicenseValid } from "./lib/payment";
 import PaymentGate from "./components/PaymentGate";
@@ -31,7 +32,7 @@ import iconPro from "@assets/icons/icon-pro.png";
 declare const Excel: typeof import("@microsoft/office-js").Excel;
 declare const Office: typeof import("@microsoft/office-js");
 
-type Step = "idle" | "paste" | "importing" | "loading" | "results" | "error" | "subscription";
+type Step = "idle" | "upload" | "paste" | "importing" | "loading" | "results" | "error" | "subscription";
 type ResultTab = "overview" | "categories" | "transactions" | "budget";
 
 const isOfficeAvailable = () =>
@@ -152,6 +153,10 @@ export default function App() {
   const [txNotes, setTxNotes] = useState<Record<number, string>>({});
   const [flaggedRows, setFlaggedRows] = useState<Set<number>>(new Set());
   const [showFlagged, setShowFlagged] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const lowestPlanPrice = config.plans.length > 0 ? Math.min(...config.plans.map((p) => p.price)) : 5;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -200,6 +205,21 @@ export default function App() {
       setStep("error");
     }
   }, []);
+
+  const analyzeUploadedFile = useCallback(async () => {
+    if (!uploadFile) return;
+    setUploadError("");
+    setStep("loading"); setError(""); setSummary(null); setExportDone(false);
+    try {
+      const txns = await parseFileToTransactions(uploadFile);
+      if (txns.length === 0) throw new Error("No transactions found in the file. Check that there is a header row and at least one data row.");
+      setSummary(buildSummary(txns));
+      setStep("results");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+      setStep("error");
+    }
+  }, [uploadFile]);
 
   const doReAnalyze = useCallback(async () => {
     setReAnalyzing(true);
@@ -363,6 +383,7 @@ export default function App() {
     setClearing(false); setClearDone(false);
     setCategoryOverrides({}); setExpandedTxRow(null); setTxNotes({});
     setFlaggedRows(new Set()); setShowFlagged(false);
+    setUploadFile(null); setUploadError(""); setIsDragOver(false);
   };
 
   const openSubscription = () => setStep("subscription");
@@ -577,7 +598,7 @@ export default function App() {
               </svg>
             </button>
           )}
-          {(step === "results" || step === "error" || step === "paste" || step === "subscription") && (
+          {(step === "results" || step === "error" || step === "upload" || step === "paste" || step === "subscription") && (
             <button onClick={reset}
               className="flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -608,15 +629,15 @@ export default function App() {
 
             {/* Action cards */}
             <div className="w-full max-w-[300px] space-y-3">
-              <button onClick={analyzeSheet}
+              <button onClick={() => setStep("upload")}
                 className="w-full text-left bg-white border-2 border-border rounded-xl p-4 hover:border-primary/60 hover:shadow-md transition-all group">
                 <div className="flex items-center gap-3.5">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors overflow-hidden">
-                    <img src={iconAnalyze} alt="Analyze sheet" className="w-8 h-8 object-contain" />
+                    <img src={iconAnalyze} alt="Upload statement" className="w-8 h-8 object-contain" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-foreground">Analyze Active Sheet</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Read data already in Excel</p>
+                    <p className="text-sm font-bold text-foreground">Upload Bank Statement</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">.xlsx · .xls · .csv · .txt · .pdf</p>
                   </div>
                   <svg className="w-4 h-4 text-muted-foreground ml-auto shrink-0 group-hover:text-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <polyline points="9 18 15 12 9 6" />
@@ -688,6 +709,135 @@ export default function App() {
                 Already have a license key? Enter it here
               </button>
             )}
+          </div>
+        )}
+
+        {/* ── UPLOAD FILE ── */}
+        {step === "upload" && (
+          <div className="flex flex-col h-full p-4 gap-4">
+            <div>
+              <h2 className="text-base font-bold text-foreground mb-1">Upload Bank Statement</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Upload your statement in any supported format and we'll extract the transactions automatically.
+              </p>
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_MIME_TYPES + ",.xlsx,.xls,.csv,.txt,.pdf"}
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setUploadFile(f);
+                setUploadError("");
+                e.target.value = "";
+              }}
+            />
+
+            {/* Drop zone */}
+            <div
+              onClick={() => !uploadFile && fileInputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragOver(false);
+                const f = e.dataTransfer.files?.[0] ?? null;
+                if (f) { setUploadFile(f); setUploadError(""); }
+              }}
+              className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all cursor-pointer min-h-[180px] ${
+                uploadFile
+                  ? "border-primary/40 bg-primary/5 cursor-default"
+                  : isDragOver
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/60"
+              }`}
+            >
+              {uploadFile ? (
+                <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    {uploadFile.name.endsWith(".pdf") ? (
+                      <svg className="w-6 h-6 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                      </svg>
+                    ) : uploadFile.name.match(/\.(xlsx?|xls)$/i) ? (
+                      <svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        <polyline points="8 13 10 17 16 11"/>
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground truncate max-w-[220px]">{uploadFile.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{(uploadFile.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setUploadFile(null); setUploadError(""); }}
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors underline underline-offset-2 mt-1"
+                  >
+                    Remove file
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                    <svg className="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Drop your file here</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">or click to browse</p>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-1 mt-1">
+                    {SUPPORTED_EXTENSIONS.map((ext) => (
+                      <span key={ext} className="text-[10px] font-bold uppercase tracking-wide bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                        {ext.slice(1)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Supported formats hint */}
+            <div className="bg-muted/40 rounded-xl px-3 py-2.5 text-xs text-muted-foreground space-y-1">
+              <p className="font-semibold text-foreground text-[11px] uppercase tracking-wide">Supported formats</p>
+              <p>• <span className="font-medium text-foreground">.xlsx / .xls</span> — Excel workbooks (first sheet used)</p>
+              <p>• <span className="font-medium text-foreground">.csv / .txt</span> — Comma, tab, or pipe-separated</p>
+              <p>• <span className="font-medium text-foreground">.pdf</span> — Bank-exported PDFs with selectable text</p>
+            </div>
+
+            {uploadError && (
+              <div className="flex items-start gap-2 bg-destructive/10 border border-destructive/20 rounded-xl px-3 py-2.5">
+                <svg className="w-4 h-4 text-destructive shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p className="text-sm text-destructive font-medium">{uploadError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 shrink-0">
+              <ActionBtn variant="secondary" onClick={() => { setUploadFile(null); setUploadError(""); fileInputRef.current?.click(); }}>
+                Browse…
+              </ActionBtn>
+              <ActionBtn onClick={analyzeUploadedFile} disabled={!uploadFile}>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                  <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+                </svg>
+                Analyze File
+              </ActionBtn>
+            </div>
           </div>
         )}
 
