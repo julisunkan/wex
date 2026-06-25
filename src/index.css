@@ -24,51 +24,51 @@
   --font-sans: var(--app-font-sans);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 4px);
+  --radius-lg: calc(var(--radius) + 6px);
 }
 
 /* ── Light theme ── */
 :root {
-  --background: 220 25% 96%;
-  --foreground: 222 47% 10%;
-  --border: 220 15% 85%;
-  --input: 220 15% 85%;
-  --ring: 217 91% 55%;
+  --background: 220 30% 97%;
+  --foreground: 222 47% 8%;
+  --border: 220 20% 88%;
+  --input: 220 20% 88%;
+  --ring: 221 83% 53%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 10%;
-  --primary: 217 91% 55%;
+  --card-foreground: 222 47% 8%;
+  --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 14% 92%;
+  --secondary: 220 16% 94%;
   --secondary-foreground: 222 47% 15%;
-  --muted: 220 14% 92%;
-  --muted-foreground: 215 18% 42%;
-  --accent: 142 72% 32%;
+  --muted: 220 16% 94%;
+  --muted-foreground: 215 20% 45%;
+  --accent: 142 76% 36%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 58%;
-  --success: 142 72% 32%;
+  --destructive: 0 84% 55%;
+  --success: 142 76% 36%;
   --app-font-sans: 'Inter', sans-serif;
-  --radius: 8px;
+  --radius: 10px;
 }
 
 /* ── Dark theme ── */
 .dark {
-  --background: 222 25% 10%;
-  --foreground: 215 20% 90%;
-  --border: 220 15% 22%;
-  --input: 220 15% 22%;
-  --ring: 217 91% 60%;
-  --card: 222 22% 15%;
-  --card-foreground: 215 20% 90%;
-  --primary: 217 91% 62%;
+  --background: 222 28% 9%;
+  --foreground: 215 20% 92%;
+  --border: 220 18% 20%;
+  --input: 220 18% 20%;
+  --ring: 221 83% 60%;
+  --card: 222 24% 13%;
+  --card-foreground: 215 20% 92%;
+  --primary: 221 83% 62%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 16% 20%;
+  --secondary: 220 18% 18%;
   --secondary-foreground: 215 20% 82%;
-  --muted: 220 16% 20%;
-  --muted-foreground: 215 14% 55%;
-  --accent: 142 65% 40%;
+  --muted: 220 18% 18%;
+  --muted-foreground: 215 16% 52%;
+  --accent: 142 68% 42%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 72% 55%;
-  --success: 142 65% 40%;
+  --success: 142 68% 42%;
 }
 
 @layer base {
@@ -84,24 +84,60 @@
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulseRing {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up  { animation: fadeInUp 0.4s ease both; }
+.animate-fade-in     { animation: fadeIn 0.3s ease both; }
+.animate-slide-right { animation: slideInRight 0.35s ease both; }
+.animate-scale-in    { animation: scaleIn 0.3s ease both; }
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-150 { animation-delay: 0.15s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
 
 /* ── Category badge colors ── */
-/* Light versions (default) */
-.cat-salary    { background: #dcfce7; color: #15803d; font-weight: 600; }
-.cat-food      { background: #fef3c7; color: #92400e; font-weight: 600; }
-.cat-grocery   { background: #d1fae5; color: #065f46; font-weight: 600; }
-.cat-transport { background: #ede9fe; color: #5b21b6; font-weight: 600; }
-.cat-utility   { background: #ffedd5; color: #9a3412; font-weight: 600; }
-.cat-shopping  { background: #fce7f3; color: #9d174d; font-weight: 600; }
-.cat-entertain { background: #e0e7ff; color: #3730a3; font-weight: 600; }
-.cat-health    { background: #cffafe; color: #155e75; font-weight: 600; }
-.cat-savings   { background: #dbeafe; color: #1d4ed8; font-weight: 600; }
-.cat-invest    { background: #f0fdf4; color: #14532d; font-weight: 600; }
-.cat-loan      { background: #fee2e2; color: #991b1b; font-weight: 600; }
-.cat-other     { background: #f1f5f9; color: #475569; font-weight: 600; }
+.cat-salary    { background: #dcfce7; color: #15803d; font-weight: 700; }
+.cat-food      { background: #fef3c7; color: #92400e; font-weight: 700; }
+.cat-grocery   { background: #d1fae5; color: #065f46; font-weight: 700; }
+.cat-transport { background: #ede9fe; color: #5b21b6; font-weight: 700; }
+.cat-utility   { background: #ffedd5; color: #9a3412; font-weight: 700; }
+.cat-shopping  { background: #fce7f3; color: #9d174d; font-weight: 700; }
+.cat-entertain { background: #e0e7ff; color: #3730a3; font-weight: 700; }
+.cat-health    { background: #cffafe; color: #155e75; font-weight: 700; }
+.cat-savings   { background: #dbeafe; color: #1d4ed8; font-weight: 700; }
+.cat-invest    { background: #f0fdf4; color: #14532d; font-weight: 700; }
+.cat-loan      { background: #fee2e2; color: #991b1b; font-weight: 700; }
+.cat-other     { background: #f1f5f9; color: #475569; font-weight: 700; }
 
 /* Dark versions */
 .dark .cat-salary    { background: #14532d40; color: #86efac; }
@@ -116,3 +152,9 @@
 .dark .cat-invest    { background: #14532d40; color: #86efac; }
 .dark .cat-loan      { background: #7f1d1d40; color: #fca5a5; }
 .dark .cat-other     { background: #1e293b40; color: #94a3b8; }
+
+/* ── Gradient card helpers ── */
+.kpi-income   { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #bbf7d0; }
+.kpi-expense  { background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%); border-color: #fecaca; }
+.kpi-savings  { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe; }
+.kpi-rate     { background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); border-color: #fde047; }
