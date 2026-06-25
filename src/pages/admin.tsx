@@ -79,30 +79,48 @@ function LoginScreen({ onLogin }: { onLogin: (pw: string) => void }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-blue-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo / hero */}
+        <div className="text-center mb-8 animate-fade-in-up">
+          <div className="mx-auto mb-4 w-20 h-20 rounded-3xl bg-white/15 flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/20">
+            <ShieldCheck className="w-10 h-10 text-white" />
           </div>
-          <CardTitle className="text-lg">Admin Login</CardTitle>
-          <p className="text-sm text-muted-foreground">Bank Statement Analyzer</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">Admin Panel</h1>
+          <p className="text-blue-200 text-base mt-1">Bank Statement Analyzer</p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white rounded-3xl shadow-2xl p-8 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+          <h2 className="text-xl font-extrabold text-foreground mb-1">Welcome back</h2>
+          <p className="text-sm text-muted-foreground mb-6">Enter your admin password to continue</p>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
               <Input type={show ? "text" : "password"} placeholder="Admin password" value={pw}
-                onChange={e => setPw(e.target.value)} autoFocus className="pr-10" />
+                onChange={e => setPw(e.target.value)} autoFocus
+                className="pr-11 h-12 text-base rounded-xl border-2 focus-visible:border-primary" />
               <button type="button" onClick={() => setShow(s => !s)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1">
+                {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading || !pw}>{loading ? "Checking…" : "Login"}</Button>
+            {error && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
+                <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                <p className="text-sm text-destructive font-medium">{error}</p>
+              </div>
+            )}
+            <button type="submit" disabled={loading || !pw}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base font-bold h-12 rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all disabled:opacity-60 shadow-lg shadow-blue-200 hover:scale-[1.01] active:scale-[0.99]">
+              {loading ? (
+                <><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Checking…</>
+              ) : (
+                <>Sign In →</>
+              )}
+            </button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1215,48 +1233,40 @@ function RevenueTab({ pw }: { pw: string }) {
     <div className="space-y-6">
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card data-testid="card-total-revenue">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Revenue</span>
-              <DollarSign className="w-4 h-4 text-emerald-500" />
-            </div>
-            <p className="text-2xl font-bold text-emerald-600" data-testid="text-total-revenue">{fmt(data.totalRevenue)}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{data.paidLicenses} paid license{data.paidLicenses !== 1 ? "s" : ""}</p>
-          </CardContent>
-        </Card>
-        <Card data-testid="card-mrr">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Est. MRR</span>
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-            </div>
-            <p className="text-2xl font-bold text-blue-600" data-testid="text-mrr">{fmt(data.mrr)}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">from active subscriptions</p>
-          </CardContent>
-        </Card>
-        <Card data-testid="card-active-licenses">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Active</span>
-              <Users className="w-4 h-4 text-violet-500" />
-            </div>
-            <p className="text-2xl font-bold text-violet-600" data-testid="text-active-licenses">{data.activeLicenses}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">of {data.totalLicenses} total issued</p>
-          </CardContent>
-        </Card>
-        <Card data-testid="card-arpu">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">ARPU</span>
-              <Activity className="w-4 h-4 text-amber-500" />
-            </div>
-            <p className="text-2xl font-bold text-amber-600" data-testid="text-arpu">
-              {fmt(data.paidLicenses > 0 ? data.totalRevenue / data.paidLicenses : 0)}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">avg revenue per user</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 shadow-md shadow-emerald-100 text-white" data-testid="card-total-revenue">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Total Revenue</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"><DollarSign className="w-4 h-4 text-white" /></div>
+          </div>
+          <p className="text-2xl font-extrabold text-white" data-testid="text-total-revenue">{fmt(data.totalRevenue)}</p>
+          <p className="text-xs text-emerald-100 mt-1">{data.paidLicenses} paid license{data.paidLicenses !== 1 ? "s" : ""}</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-5 shadow-md shadow-blue-100 text-white" data-testid="card-mrr">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-blue-100 uppercase tracking-wider">Est. MRR</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-white" /></div>
+          </div>
+          <p className="text-2xl font-extrabold text-white" data-testid="text-mrr">{fmt(data.mrr)}</p>
+          <p className="text-xs text-blue-100 mt-1">from active subscriptions</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 p-5 shadow-md shadow-violet-100 text-white" data-testid="card-active-licenses">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-violet-100 uppercase tracking-wider">Active</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"><Users className="w-4 h-4 text-white" /></div>
+          </div>
+          <p className="text-2xl font-extrabold text-white" data-testid="text-active-licenses">{data.activeLicenses}</p>
+          <p className="text-xs text-violet-100 mt-1">of {data.totalLicenses} total issued</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 p-5 shadow-md shadow-amber-100 text-white" data-testid="card-arpu">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-amber-100 uppercase tracking-wider">ARPU</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center"><Activity className="w-4 h-4 text-white" /></div>
+          </div>
+          <p className="text-2xl font-extrabold text-white" data-testid="text-arpu">
+            {fmt(data.paidLicenses > 0 ? data.totalRevenue / data.paidLicenses : 0)}
+          </p>
+          <p className="text-xs text-amber-100 mt-1">avg revenue per user</p>
+        </div>
       </div>
 
       {/* Monthly revenue chart */}
@@ -1641,31 +1651,44 @@ export default function AdminPage() {
   if (!authed) return <LoginScreen onLogin={handleLogin} />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top bar */}
-      <div className="bg-white border-b px-4 md:px-8 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-primary" />
-          <span className="font-semibold text-sm">Admin Panel</span>
-          <span className="text-muted-foreground text-xs hidden sm:inline">· Bank Statement Analyzer</span>
+    <div className="min-h-screen bg-muted/30">
+      {/* ── Gradient header ── */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-4 md:px-8 py-4 flex items-center justify-between shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center border border-white/20 shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="font-extrabold text-base text-white leading-tight">Admin Panel</p>
+            <p className="text-blue-200 text-xs hidden sm:block">Bank Statement Analyzer</p>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={logout} className="gap-1.5">
+        <Button variant="ghost" size="sm" onClick={logout}
+          className="gap-1.5 text-white/80 hover:text-white hover:bg-white/10 border border-white/20">
           <LogOut className="w-4 h-4" /> Logout
         </Button>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        {/* Tabs */}
-        <div className="flex gap-1 bg-muted p-1 rounded-lg mb-6 w-fit">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === t.id ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              {t.icon} <span className="hidden sm:inline">{t.label}</span>
-            </button>
-          ))}
+      {/* ── Tabs bar ── */}
+      <div className="bg-white border-b border-border shadow-sm sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
+          <div className="flex gap-0.5 overflow-x-auto no-scrollbar">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${
+                  tab === t.id
+                    ? "text-primary border-primary"
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:border-muted-foreground/30"
+                }`}>
+                {t.icon} <span className="hidden sm:inline">{t.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {/* Tab content */}
+      {/* ── Content ── */}
+      <div className="max-w-5xl mx-auto p-4 md:p-8">
         {tab === "licenses"      && <LicensesTab pw={pw} />}
         {tab === "revenue"       && <RevenueTab pw={pw} />}
         {tab === "tickets"       && <TicketsTab pw={pw} />}
@@ -1675,7 +1698,10 @@ export default function AdminPage() {
         {tab === "backup"        && <BackupTab pw={pw} />}
         {tab === "setup"         && <SetupTab />}
         {(tab === "payment" || tab === "appearance" || tab === "notifications") && !settings && (
-          <div className="text-center py-12 text-muted-foreground text-sm">Loading settings…</div>
+          <div className="flex items-center justify-center gap-3 py-20 text-muted-foreground">
+            <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-base font-medium">Loading settings…</span>
+          </div>
         )}
       </div>
     </div>
