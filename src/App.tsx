@@ -48,12 +48,12 @@ function runExcel<T>(fn: (context: Excel.RequestContext) => Promise<T>): Promise
 // ── KPI Card ─────────────────────────────────────────────────────────────────
 function KpiCard({ label, value, color, icon }: { label: string; value: string; color: string; icon: string }) {
   return (
-    <div className="bg-white border border-border rounded-xl p-4 shadow-sm">
-      <div className="flex items-center gap-1.5 mb-2">
+    <div className="bg-white border border-border rounded-xl p-5 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
         <img src={icon} alt={label} className="w-5 h-5 object-contain" />
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
       </div>
-      <p className={`text-xl font-extrabold tracking-tight ${color}`}>{value}</p>
+      <p className={`text-2xl font-extrabold tracking-tight ${color}`}>{value}</p>
     </div>
   );
 }
@@ -65,8 +65,8 @@ function ActionBtn({
   onClick: () => void; disabled?: boolean; children: React.ReactNode; variant?: "primary" | "secondary" | "ghost"; size?: "md" | "sm";
 }) {
   const base = size === "sm"
-    ? "flex items-center justify-center gap-1.5 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-    : "flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    ? "flex items-center justify-center gap-1.5 text-sm font-semibold py-2 px-3.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    : "flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = variant === "primary"
     ? `${base} bg-primary text-primary-foreground hover:opacity-90 shadow-sm`
     : variant === "ghost"
