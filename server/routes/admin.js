@@ -180,6 +180,38 @@ router.get("/revenue", requireAdmin, (req, res) => {
   });
 });
 
+// POST /api/admin/licenses/import  — import licenses from JSON
+router.post("/licenses/import", requireAdmin, (req, res) => {
+  const { licenses, mode = "merge" } = req.body || {};
+  if (!Array.isArray(licenses)) {
+    return res.status(400).json({ error: "licenses must be an array" });
+  }
+  const valid = licenses.filter(l => l && typeof l.licenseKey === "string" && l.licenseKey.trim());
+  if (valid.length === 0) {
+    return res.status(400).json({ error: "No valid license entries found in import data" });
+  }
+  if (mode === "replace") {
+    saveLicenses(valid);
+    console.log(`📥 Imported ${valid.length} licenses (replace mode)`);
+    return res.json({ imported: valid.length, skipped: 0, mode: "replace" });
+  }
+  // Merge: skip existing keys
+  const existing = loadLicenses();
+  const existingKeys = new Set(existing.map(l => l.licenseKey));
+  const toAdd = valid.filter(l => !existingKeys.has(l.licenseKey));
+  saveLicenses([...existing, ...toAdd]);
+  console.log(`📥 Imported ${toAdd.length} new licenses (${valid.length - toAdd.length} skipped as duplicates)`);
+  return res.json({ imported: toAdd.length, skipped: valid.length - toAdd.length, mode: "merge" });
+});
+
+// GET /api/admin/licenses/export  — download full JSON backup
+router.get("/licenses/export", requireAdmin, (req, res) => {
+  const licenses = loadLicenses();
+  res.setHeader("Content-Disposition", `attachment; filename="bsa-licenses-${new Date().toISOString().slice(0, 10)}.json"`);
+  res.setHeader("Content-Type", "application/json");
+  res.json(licenses);
+});
+
 // DELETE /api/admin/licenses/:key  — revoke a license key
 router.delete("/licenses/:key", requireAdmin, (req, res) => {
   const { key } = req.params;

@@ -142,6 +142,15 @@ function LicensesTab({ pw }: { pw: string }) {
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [bulkKeys, setBulkKeys] = useState<string[]>([]);
   const [bulkExpiresAt, setBulkExpiresAt] = useState<string | null>(null);
+  // Import/export state
+  const [importOpen, setImportOpen] = useState(false);
+  const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
+  const [importParsed, setImportParsed] = useState<License[] | null>(null);
+  const [importFileName, setImportFileName] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; mode: string } | null>(null);
+  const [importError, setImportError] = useState("");
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     setLoading(true);
@@ -248,6 +257,68 @@ function LicensesTab({ pw }: { pw: string }) {
     a.download = `bsa-subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function exportJson() {
+    const res = await fetch(`${API_BASE}/api/admin/licenses/export`, { headers: { "x-admin-password": pw } });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bsa-licenses-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function onImportFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    setImportError("");
+    setImportResult(null);
+    setImportParsed(null);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const text = ev.target?.result as string;
+        const parsed = JSON.parse(text);
+        const arr: License[] = Array.isArray(parsed) ? parsed : [];
+        const valid = arr.filter(l => l && typeof l.licenseKey === "string" && l.licenseKey.trim());
+        if (valid.length === 0) throw new Error("No valid license keys found in this file.");
+        setImportParsed(valid);
+      } catch (err) {
+        setImportError(err instanceof Error ? err.message : "Invalid JSON file.");
+        setImportParsed(null);
+      }
+    };
+    reader.readAsText(file);
+    // reset input so same file can be re-selected
+    e.target.value = "";
+  }
+
+  async function confirmImport() {
+    if (!importParsed) return;
+    setImporting(true);
+    setImportError("");
+    setImportResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/licenses/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-password": pw },
+        body: JSON.stringify({ licenses: importParsed, mode: importMode }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Import failed");
+      setImportResult(json);
+      setImportParsed(null);
+      setImportFileName("");
+      load();
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Import failed");
+    } finally {
+      setImporting(false);
+    }
   }
 
   return (
@@ -403,19 +474,126 @@ function LicensesTab({ pw }: { pw: string }) {
         );
       })()}
 
-      <div className="flex items-center justify-between">
+      {/* Hidden file input for JSON import */}
+      <input
+        ref={importFileRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={onImportFileChange}
+        data-testid="input-import-file"
+      />
+
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <Badge variant="secondary">{data?.total ?? 0} licenses issued</Badge>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {data && data.licenses.length > 0 && (
             <Button variant="outline" size="sm" onClick={exportSubscribersCsv} className="gap-1.5 text-green-700 border-green-300 hover:bg-green-50" data-testid="button-export-subscribers-csv">
               <Download className="w-3.5 h-3.5" /> Export CSV
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={exportJson} className="gap-1.5 text-blue-700 border-blue-300 hover:bg-blue-50" data-testid="button-export-json">
+            <Download className="w-3.5 h-3.5" /> Export JSON
+          </Button>
+          <Button
+            variant="outline" size="sm"
+            onClick={() => { setImportOpen(v => !v); setImportResult(null); setImportError(""); setImportParsed(null); setImportFileName(""); }}
+            className={`gap-1.5 ${importOpen ? "bg-orange-50 text-orange-700 border-orange-300" : "text-orange-700 border-orange-300 hover:bg-orange-50"}`}
+            data-testid="button-import-licenses"
+          >
+            <Upload className="w-3.5 h-3.5" /> Import JSON
+          </Button>
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
         </div>
       </div>
+
+      {/* ── Import panel ── */}
+      {importOpen && (
+        <Card className="border-orange-200 bg-orange-50/40 animate-fade-in">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Upload className="w-4 h-4 text-orange-600" /> Import Licenses from JSON
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Upload a <code className="text-xs bg-muted px-1 rounded">.json</code> file exported from this admin panel. Each entry must have a <code className="text-xs bg-muted px-1 rounded">licenseKey</code> field.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Mode selector */}
+            <div className="flex gap-3 flex-wrap">
+              {([
+                { val: "merge", label: "Merge", desc: "Add new keys, keep existing ones" },
+                { val: "replace", label: "Replace all", desc: "Overwrite the entire license database" },
+              ] as const).map(opt => (
+                <button
+                  key={opt.val}
+                  onClick={() => setImportMode(opt.val)}
+                  className={`flex-1 min-w-[160px] text-left rounded-xl border px-4 py-3 transition-all ${importMode === opt.val ? "border-orange-400 bg-white shadow-sm" : "border-border bg-white/60 hover:bg-white"}`}
+                  data-testid={`button-import-mode-${opt.val}`}
+                >
+                  <p className={`text-sm font-semibold ${importMode === opt.val ? "text-orange-700" : "text-foreground"}`}>{opt.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                  {opt.val === "replace" && (
+                    <p className="text-[10px] text-red-500 font-medium mt-1">⚠ Cannot be undone</p>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* File picker */}
+            <div
+              onClick={() => importFileRef.current?.click()}
+              className="cursor-pointer flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-orange-300 bg-white px-6 py-8 hover:bg-orange-50/60 transition-colors"
+              data-testid="dropzone-import"
+            >
+              <Upload className="w-7 h-7 text-orange-400" />
+              <p className="text-sm font-medium text-foreground">
+                {importFileName ? importFileName : "Click to choose a .json file"}
+              </p>
+              {!importFileName && <p className="text-xs text-muted-foreground">Exported from this admin panel</p>}
+            </div>
+
+            {/* Parse preview */}
+            {importParsed && (
+              <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-green-700">✓ {importParsed.length} license{importParsed.length !== 1 ? "s" : ""} ready to import</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Mode: <strong>{importMode === "merge" ? "Merge (add new, skip duplicates)" : "Replace all existing licenses"}</strong>
+                  </p>
+                </div>
+                <Button
+                  onClick={confirmImport}
+                  disabled={importing}
+                  className="gap-2 bg-orange-600 hover:bg-orange-700 text-white shrink-0"
+                  data-testid="button-confirm-import"
+                >
+                  {importing ? <><RefreshCw className="w-4 h-4 animate-spin" /> Importing…</> : <><Upload className="w-4 h-4" /> Confirm Import</>}
+                </Button>
+              </div>
+            )}
+
+            {/* Error */}
+            {importError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-center gap-2 text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 shrink-0" /> {importError}
+              </div>
+            )}
+
+            {/* Success result */}
+            {importResult && (
+              <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 space-y-1">
+                <p className="text-sm font-semibold text-green-700">
+                  <CheckCircle2 className="w-4 h-4 inline mr-1" />
+                  Import complete — {importResult.imported} license{importResult.imported !== 1 ? "s" : ""} added
+                  {importResult.skipped > 0 && `, ${importResult.skipped} skipped (duplicates)`}
+                </p>
+                <p className="text-xs text-muted-foreground">Mode: {importResult.mode}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-0">
