@@ -1,6 +1,6 @@
 {
   "name": "Bank Statement Analyzer",
-  "short_name": "BSA XLSX",
+  "short_name": "Bank Statement Analyzer",
   "description": "Analyze, categorize, and visualize your bank transactions. Upload CSV, XLSX, or PDF statements and get instant financial insights.",
   "start_url": "/",
   "display": "standalone",
