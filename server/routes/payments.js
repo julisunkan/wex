@@ -81,32 +81,58 @@ function saveLicense(licenseKey, txHash, planId, expiresAt, email) {
 
 // ── Blockchain verification ───────────────────────────────────────────────────
 
+// Convert a Tron base58check address (e.g. "TXyz...") to its 42-char hex form ("41...")
+function tronBase58ToHex(b58addr) {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let n = 0n;
+  for (const c of b58addr) {
+    const idx = alphabet.indexOf(c);
+    if (idx < 0) return null;
+    n = n * 58n + BigInt(idx);
+  }
+  // 25 bytes total (version + 20-byte addr + 4-byte checksum) → 50 hex chars
+  // We only need the first 21 bytes (42 hex chars), discarding the checksum
+  return n.toString(16).padStart(50, "0").slice(0, 42);
+}
+
 async function verifyTron(txHash, walletAddress, priceUsdt) {
   const headers = { Accept: "application/json" };
   if (TRONGRID_API_KEY) headers["TRON-PRO-API-KEY"] = TRONGRID_API_KEY;
 
   const res = await fetch(`https://api.trongrid.io/v1/transactions/${txHash}`, { headers });
-  if (!res.ok) return { ok: false, reason: "TronGrid request failed" };
+  if (!res.ok) {
+    let body = "";
+    try { body = await res.text(); } catch {}
+    console.error(`[TronGrid] HTTP ${res.status} for tx ${txHash}:`, body.slice(0, 300));
+    if (res.status === 401) return { ok: false, reason: "TronGrid API key rejected (401)" };
+    if (res.status === 429) return { ok: false, reason: "TronGrid rate limit hit — try again in a moment" };
+    return { ok: false, reason: `TronGrid request failed (HTTP ${res.status})` };
+  }
 
   const json = await res.json();
   const tx = json?.data?.[0];
-  if (!tx) return { ok: false, reason: "Transaction not found" };
+  if (!tx) return { ok: false, reason: "Transaction not found on Tron network" };
 
   const receipt = tx?.ret?.[0];
-  if (receipt?.contractRet !== "SUCCESS") return { ok: false, reason: "Transaction not successful" };
+  if (receipt?.contractRet !== "SUCCESS") return { ok: false, reason: "Transaction not successful on-chain" };
 
   const data = tx?.raw_data?.contract?.[0]?.parameter?.value?.data || "";
-  if (data.startsWith("a9059cbb")) {
-    const to     = "41" + data.slice(32, 72);
-    const amount = parseInt(data.slice(72, 136), 16) / 1e6;
-    const ourHex = walletAddress;
-    if (to.toLowerCase() !== ourHex.toLowerCase())
-      return { ok: false, reason: "Wrong destination wallet" };
-    if (amount < priceUsdt)
-      return { ok: false, reason: `Amount too low: ${amount} USDT (need ${priceUsdt})` };
-    return { ok: true };
+  if (!data.startsWith("a9059cbb")) return { ok: false, reason: "Not a TRC-20 USDT transfer" };
+
+  // Recipient is the 20-byte EVM address at data[32..72], prefixed with "41" for Tron
+  const toHex = "41" + data.slice(32, 72);
+  const amount = parseInt(data.slice(72, 136), 16) / 1e6;
+
+  // Convert our wallet address from base58 to hex for comparison
+  const ourHex = tronBase58ToHex(walletAddress) || walletAddress;
+  if (toHex.toLowerCase() !== ourHex.toLowerCase()) {
+    console.error(`[TronGrid] Wallet mismatch: tx sent to ${toHex}, expected ${ourHex}`);
+    return { ok: false, reason: "Payment sent to wrong wallet address" };
   }
-  return { ok: false, reason: "Not a TRC-20 USDT transfer" };
+  if (amount < priceUsdt)
+    return { ok: false, reason: `Amount too low: ${amount} USDT (need ${priceUsdt})` };
+
+  return { ok: true };
 }
 
 async function verifyBsc(txHash, walletAddress, priceUsdt) {
