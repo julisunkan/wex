@@ -271,6 +271,66 @@ function LicensesTab({ pw }: { pw: string }) {
     URL.revokeObjectURL(url);
   }
 
+  function parseLicenseCsv(text: string): License[] {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) throw new Error("CSV file is empty or has no data rows.");
+
+    // Parse a single CSV line respecting quoted fields
+    function parseLine(line: string): string[] {
+      const cells: string[] = [];
+      let cur = "", inQuote = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuote && line[i + 1] === '"') { cur += '"'; i++; }
+          else inQuote = !inQuote;
+        } else if (ch === ',' && !inQuote) {
+          cells.push(cur.trim()); cur = "";
+        } else {
+          cur += ch;
+        }
+      }
+      cells.push(cur.trim());
+      return cells;
+    }
+
+    const headers = parseLine(lines[0]).map(h => h.toLowerCase());
+    // Column index helpers — handle both export formats
+    const col = (...names: string[]) => {
+      for (const n of names) { const i = headers.indexOf(n); if (i !== -1) return i; }
+      return -1;
+    };
+    const iKey  = col("license key", "licensekey", "key");
+    if (iKey === -1) throw new Error("CSV must have a 'License Key' column.");
+    const iPlan = col("plan", "planid");
+    const iEmail = col("subscriber email", "email");
+    const iIssuedAt = col("issued at", "issuedat", "generated at", "generatedat");
+    const iExpiresAt = col("expires at", "expiresat", "expiry");
+    const iReminder = col("reminder sent", "remindersent");
+    const iTxHash = col("source / tx hash", "source/tx hash", "txhash", "tx hash");
+    const iNote = col("note");
+
+    const result: License[] = [];
+    for (let r = 1; r < lines.length; r++) {
+      const cells = parseLine(lines[r]);
+      const licenseKey = iKey !== -1 ? cells[iKey] ?? "" : "";
+      if (!licenseKey.trim()) continue;
+      const txRaw = iTxHash !== -1 ? (cells[iTxHash] ?? "").trim() : "MANUAL";
+      result.push({
+        licenseKey: licenseKey.trim(),
+        txHash: txRaw.toLowerCase() === "manual" ? "MANUAL" : (txRaw || "MANUAL"),
+        issuedAt: iIssuedAt !== -1 ? (cells[iIssuedAt] ?? new Date().toISOString()) : new Date().toISOString(),
+        planId: iPlan !== -1 ? (cells[iPlan] ?? undefined) : undefined,
+        email: iEmail !== -1 ? (cells[iEmail] || null) : null,
+        expiresAt: iExpiresAt !== -1 ? (cells[iExpiresAt] || undefined) : undefined,
+        reminderSent: iReminder !== -1 ? cells[iReminder]?.toLowerCase() === "yes" : false,
+        note: iNote !== -1 ? (cells[iNote] ?? undefined) : undefined,
+      });
+    }
+    if (result.length === 0) throw new Error("No valid license keys found in the CSV.");
+    return result;
+  }
+
   function onImportFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -282,18 +342,23 @@ function LicensesTab({ pw }: { pw: string }) {
     reader.onload = (ev) => {
       try {
         const text = ev.target?.result as string;
-        const parsed = JSON.parse(text);
-        const arr: License[] = Array.isArray(parsed) ? parsed : [];
-        const valid = arr.filter(l => l && typeof l.licenseKey === "string" && l.licenseKey.trim());
-        if (valid.length === 0) throw new Error("No valid license keys found in this file.");
-        setImportParsed(valid);
+        const isCsv = file.name.toLowerCase().endsWith(".csv");
+        if (isCsv) {
+          const valid = parseLicenseCsv(text);
+          setImportParsed(valid);
+        } else {
+          const parsed = JSON.parse(text);
+          const arr: License[] = Array.isArray(parsed) ? parsed : [];
+          const valid = arr.filter(l => l && typeof l.licenseKey === "string" && l.licenseKey.trim());
+          if (valid.length === 0) throw new Error("No valid license keys found in this file.");
+          setImportParsed(valid);
+        }
       } catch (err) {
-        setImportError(err instanceof Error ? err.message : "Invalid JSON file.");
+        setImportError(err instanceof Error ? err.message : "Invalid file.");
         setImportParsed(null);
       }
     };
     reader.readAsText(file);
-    // reset input so same file can be re-selected
     e.target.value = "";
   }
 
@@ -478,7 +543,7 @@ function LicensesTab({ pw }: { pw: string }) {
       <input
         ref={importFileRef}
         type="file"
-        accept=".json,application/json"
+        accept=".json,.csv,application/json,text/csv"
         className="hidden"
         onChange={onImportFileChange}
         data-testid="input-import-file"
@@ -514,9 +579,9 @@ function LicensesTab({ pw }: { pw: string }) {
         <Card className="border-orange-200 bg-orange-50/40 animate-fade-in">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Upload className="w-4 h-4 text-orange-600" /> Import Licenses from JSON
+              <Upload className="w-4 h-4 text-orange-600" /> Import Licenses (CSV or JSON)
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Upload a <code className="text-xs bg-muted px-1 rounded">.json</code> file exported from this admin panel. Each entry must have a <code className="text-xs bg-muted px-1 rounded">licenseKey</code> field.</p>
+            <p className="text-sm text-muted-foreground">Upload a <code className="text-xs bg-muted px-1 rounded">.json</code> or <code className="text-xs bg-muted px-1 rounded">.csv</code> file exported from this admin panel. Both the CSV and JSON export formats are supported.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Mode selector */}
@@ -548,9 +613,9 @@ function LicensesTab({ pw }: { pw: string }) {
             >
               <Upload className="w-7 h-7 text-orange-400" />
               <p className="text-sm font-medium text-foreground">
-                {importFileName ? importFileName : "Click to choose a .json file"}
+                {importFileName ? importFileName : "Click to choose a .csv or .json file"}
               </p>
-              {!importFileName && <p className="text-xs text-muted-foreground">Exported from this admin panel</p>}
+              {!importFileName && <p className="text-xs text-muted-foreground">CSV or JSON — exported from this admin panel</p>}
             </div>
 
             {/* Parse preview */}
