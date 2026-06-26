@@ -3,8 +3,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import {
   detectColumns,
   readTransactions,
-  highlightTransactions,
-  clearHighlights,
   createSummarySheet,
   exportToCsv,
   type ColumnMap,
@@ -25,7 +23,6 @@ import iconIncome from "@assets/icons/icon-income.png";
 import iconExpenses from "@assets/icons/icon-expenses.png";
 import iconSavings from "@assets/icons/icon-savings.png";
 import iconRate from "@assets/icons/icon-rate.png";
-import iconHighlight from "@assets/icons/icon-highlight.png";
 import iconExport from "@assets/icons/icon-export.png";
 import iconPro from "@assets/icons/icon-pro.png";
 
@@ -145,10 +142,6 @@ export default function App() {
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string>("");
   const [summary, setSummary] = useState<Summary | null>(null);
-  const [highlighting, setHighlighting] = useState(false);
-  const [highlightDone, setHighlightDone] = useState(false);
-  const [clearing, setClearing] = useState(false);
-  const [clearDone, setClearDone] = useState(false);
   const [reAnalyzing, setReAnalyzing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportDone, setExportDone] = useState(false);
@@ -158,7 +151,7 @@ export default function App() {
   const [isPro, setIsPro] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentMode, setPaymentMode] = useState<"pay" | "key">("pay");
-  const [pendingAction, setPendingAction] = useState<"highlight" | "export" | "csv" | "pdf" | "budget" | "recurring" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"export" | "csv" | "pdf" | "budget" | "recurring" | null>(null);
   const [txSearch, setTxSearch] = useState("");
   const [txCategoryFilter, setTxCategoryFilter] = useState("All");
   const [txTypeFilter, setTxTypeFilter] = useState<"all" | "credit" | "debit">("all");
@@ -201,7 +194,6 @@ export default function App() {
     setShowPayment(false);
     const action = pendingAction;
     setPendingAction(null);
-    if (action === "highlight") doHighlight();
     if (action === "export") doExport();
     if (action === "csv") doExportCsv();
     if (action === "pdf") setShowPdfDialog(true);
@@ -257,7 +249,7 @@ export default function App() {
       });
       if (txns.length === 0) throw new Error("No transactions found in the active sheet.");
       setSummary(buildSummary(txns));
-      setExportDone(false); setHighlightDone(false); setClearDone(false);
+      setExportDone(false);
     } catch (e: unknown) {
       setActionError(e instanceof Error ? e.message : String(e));
     } finally { setReAnalyzing(false); }
@@ -287,35 +279,6 @@ export default function App() {
     }
   }, [csvText]);
 
-  const doHighlight = useCallback(async () => {
-    if (!summary) return;
-    setHighlighting(true); setHighlightDone(false); setActionError("");
-    try {
-      await runExcel(async (ctx) => {
-        const sheet = ctx.workbook.worksheets.getActiveWorksheet();
-        const columnMap = await detectColumns(sheet);
-        if (columnMap) await highlightTransactions(sheet, summary.transactions, columnMap);
-        else throw new Error("Could not detect columns on the active sheet.");
-      });
-      setHighlightDone(true);
-    } catch (e: unknown) {
-      setActionError(e instanceof Error ? e.message : String(e));
-    } finally { setHighlighting(false); }
-  }, [summary]);
-
-  const doClearHighlights = useCallback(async () => {
-    setClearing(true); setClearDone(false); setActionError("");
-    try {
-      await runExcel(async (ctx) => {
-        const sheet = ctx.workbook.worksheets.getActiveWorksheet();
-        await clearHighlights(sheet);
-      });
-      setClearDone(true); setHighlightDone(false);
-      setTimeout(() => setClearDone(false), 2000);
-    } catch (e: unknown) {
-      setActionError(e instanceof Error ? e.message : String(e));
-    } finally { setClearing(false); }
-  }, []);
 
   const doExport = useCallback(async () => {
     if (!summary) return;
@@ -357,7 +320,6 @@ export default function App() {
     } finally { setPdfEmailSending(false); }
   }, [summary, appName]);
 
-  const handleHighlight = useCallback(() => { if (requirePro("highlight")) doHighlight(); }, [requirePro, doHighlight]);
   const handleExport = useCallback(() => { if (requirePro("export")) doExport(); }, [requirePro, doExport]);
   const handleExportCsv = useCallback(() => { if (requirePro("csv")) doExportCsv(); }, [requirePro, doExportCsv]);
   const handleExportPdf = useCallback(() => {
@@ -678,7 +640,6 @@ export default function App() {
                         { label: "Financial health score", free: true },
                         { label: "Search & filter transactions", free: true },
                         { label: "Top merchants breakdown", free: true },
-                        { label: "Highlight cells by category", free: false },
                         { label: "Export Excel summary sheet", free: false },
                         { label: "Download CSV with categories", free: false },
                         { label: "Export color-coded PDF report", free: false },
@@ -940,19 +901,6 @@ export default function App() {
 
               {/* Action buttons */}
               <div className="flex gap-2 px-4 pt-3 pb-3 flex-wrap border-b border-border">
-                <ActionBtn variant="secondary" onClick={handleHighlight} disabled={highlighting || clearing} size="sm">
-                  {highlighting ? <Spinner size="sm" />
-                    : highlightDone ? <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                    : <img src={iconHighlight} alt="Highlight" className="w-4 h-4 object-contain" />}
-                  {highlightDone ? "Done!" : "Highlight"}
-                  {!isPro && <span className="text-xs opacity-60">🔒</span>}
-                </ActionBtn>
-                <ActionBtn variant="ghost" onClick={doClearHighlights} disabled={clearing || highlighting} size="sm">
-                  {clearing ? <Spinner size="sm" />
-                    : clearDone ? <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                    : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>}
-                  {clearDone ? "Cleared!" : "Clear"}
-                </ActionBtn>
                 <ActionBtn onClick={handleExport} disabled={exporting} size="sm">
                   {exporting ? <Spinner size="sm" color="border-white" />
                     : exportDone ? <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>

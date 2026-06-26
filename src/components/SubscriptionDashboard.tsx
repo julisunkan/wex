@@ -87,7 +87,7 @@ export default function SubscriptionDashboard({ onClose }: Props) {
           <p className="text-base text-slate-200 max-w-xs mx-auto leading-relaxed">
             {status?.reason === "expired"
               ? "Your license has expired. Renew to regain access to all Pro features."
-              : "Unlock premium features to highlight cells, export reports, and track budgets."}
+              : "Unlock premium features to export reports, track budgets, and detect recurring charges."}
           </p>
         </div>
 
@@ -236,7 +236,6 @@ export default function SubscriptionDashboard({ onClose }: Props) {
           <div className="grid grid-cols-1 gap-2">
             {[
               "Analyze & auto-categorize transactions",
-              "Highlight cells by spending category",
               "Export Excel summary sheet",
               "Download CSV with categories",
               "Color-coded PDF report",

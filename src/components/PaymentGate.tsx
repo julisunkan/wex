@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchPaymentConfig, verifyPayment, setLicense, activateLicenseKey } from "../lib/payment";
 import { useAppConfig } from "../context/AppConfigContext";
-import iconHighlight from "@assets/icons/icon-highlight.png";
 import iconExport from "@assets/icons/icon-export.png";
 
 interface Props {
@@ -135,7 +134,6 @@ export default function PaymentGate({ onUnlocked, onDismiss, initialMode = "pay"
               {/* Feature cards */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: iconHighlight, label: "Highlight Cells", desc: "Color-code by category", grad: "from-blue-50 to-blue-100 border-blue-200" },
                   { icon: iconExport, label: "Export Reports", desc: "Excel · CSV · PDF", grad: "from-indigo-50 to-indigo-100 border-indigo-200" },
                   { label: "Budget Tracker", desc: "Set category budgets", grad: "from-emerald-50 to-emerald-100 border-emerald-200", emoji: "💰" },
                   { label: "Detect Duplicates", desc: "Flag repeat charges", grad: "from-amber-50 to-amber-100 border-amber-200", emoji: "🔍" },
