@@ -10,7 +10,7 @@ import {
 import { useCurrency, CURRENCIES } from "./hooks/use-currency";
 import { buildSummary, CATEGORIES, type Category, type Summary, type Transaction } from "./lib/categorizer";
 import { parsePastedText, writeToExcelSheet } from "./lib/csv-parser";
-import { parseFileToTransactions, ACCEPTED_MIME_TYPES, SUPPORTED_EXTENSIONS } from "./lib/file-parser";
+import { parseFileToTransactions, parsedCsvToTransactions, ACCEPTED_MIME_TYPES, SUPPORTED_EXTENSIONS } from "./lib/file-parser";
 import { exportToPdf, buildReportHtml } from "./lib/pdf";
 import { getLicense, checkLicenseValid } from "./lib/payment";
 import PaymentGate from "./components/PaymentGate";
@@ -261,15 +261,23 @@ export default function App() {
     if (!parsed) { setCsvError("Could not parse. Make sure there's a header row and at least one data row."); return; }
     setStep("importing");
     try {
-      await runExcel(async (ctx) => { await writeToExcelSheet(parsed, ctx); });
-      setStep("loading");
-      const txns: Transaction[] = await runExcel(async (ctx) => {
-        const sheet = ctx.workbook.worksheets.getActiveWorksheet();
-        await ctx.sync();
-        const columnMap = await detectColumns(sheet);
-        if (!columnMap) throw new Error("Columns could not be mapped after import.");
-        return await readTransactions(sheet, columnMap);
-      });
+      let txns: Transaction[];
+      if (isOfficeAvailable()) {
+        // Inside Excel: write to sheet then read back (preserves Excel-side formatting)
+        await runExcel(async (ctx) => { await writeToExcelSheet(parsed, ctx); });
+        setStep("loading");
+        txns = await runExcel(async (ctx) => {
+          const sheet = ctx.workbook.worksheets.getActiveWorksheet();
+          await ctx.sync();
+          const columnMap = await detectColumns(sheet);
+          if (!columnMap) throw new Error("Columns could not be mapped after import.");
+          return await readTransactions(sheet, columnMap);
+        });
+      } else {
+        // Standalone web app: parse directly in-browser, no Excel needed
+        setStep("loading");
+        txns = parsedCsvToTransactions(parsed.headers, parsed.rows);
+      }
       if (txns.length === 0) throw new Error("No transactions were parsed from the pasted data.");
       setSummary(buildSummary(txns));
       setStep("results");

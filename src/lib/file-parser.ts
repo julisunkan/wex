@@ -101,7 +101,7 @@ function rowsToTransactions(headers: string[], rows: string[][], columnMap: Colu
   return transactions;
 }
 
-function parsedCsvToTransactions(headers: string[], rows: string[][]): Transaction[] {
+export function parsedCsvToTransactions(headers: string[], rows: string[][]): Transaction[] {
   const columnMap = detectColumnsFromHeaders(headers);
   if (!columnMap) throw new Error(
     "Could not find required columns (Date + Description + Amount or Debit/Credit).\n\nMake sure your file has a header row with column names like:\n• Date, Description, Amount\n• Date, Narration, Debit, Credit, Balance"
